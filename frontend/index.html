@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carbon Footprint Analysis System</title>
+  
+  <!-- 引入字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+  
+  <!-- 引入 Font Awesome 图标 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- 引入全局样式 -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app"></div>
+  
+  <!-- 引入 Vue 3 和 Vue Router -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-router@4"></script>
+  
+  <!-- 引入 Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- 主应用脚本 -->
+  <script type="module" src="/src/main.js"></script>
+  
+  <script>
+    // 简单的加载状态指示器
+    document.addEventListener('DOMContentLoaded', function() {
+      const appContainer = document.getElementById('app');
+      if (!appContainer.innerHTML.trim()) {
+        appContainer.innerHTML = `
+          <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            background: #f0f2f5;
+            font-family: 'Source Sans Pro', sans-serif;
+          ">
+            <div class="spinner" style="
+              width: 50px;
+              height: 50px;
+              border: 5px solid rgba(44, 120, 115, 0.3);
+              border-radius: 50%;
+              border-top-color: #2c7873;
+              animation: spin 1s linear infinite;
+              margin-bottom: 20px;
+            "></div>
+            <p style="font-size: 1.2rem; color: #2c3e50;">应用加载中，请稍候...</p>
+            <style>
+              @keyframes spin {
+                to { transform: rotate(360deg); }
+              }
+            </style>
+          </div>
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

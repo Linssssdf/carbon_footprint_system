@@ -1,0 +1,32 @@
+{
+  "groups": [
+    {
+      "name": "file",
+      "type": "com.carbonfootprint.config.FileStorageConfig",
+      "sourceType": "com.carbonfootprint.config.FileStorageConfig"
+    },
+    {
+      "name": "python",
+      "type": "com.carbonfootprint.config.PythonConfig",
+      "sourceType": "com.carbonfootprint.config.PythonConfig"
+    }
+  ],
+  "properties": [
+    {
+      "name": "file.upload-dir",
+      "type": "java.lang.String",
+      "sourceType": "com.carbonfootprint.config.FileStorageConfig"
+    },
+    {
+      "name": "python.analysis-script",
+      "type": "java.lang.String",
+      "sourceType": "com.carbonfootprint.config.PythonConfig"
+    },
+    {
+      "name": "python.executable",
+      "type": "java.lang.String",
+      "sourceType": "com.carbonfootprint.config.PythonConfig"
+    }
+  ],
+  "hints": []
+}
