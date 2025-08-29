@@ -2,390 +2,291 @@
   <div class="system-monitoring">
     <div class="header">
       <h1>Task Analysis</h1>
+      <p class="subtitle">Detailed analysis of workflow tasks and performance metrics</p>
     </div>
 
-    <div class="section">
-      <h2>数据表格分析</h2>
-      
-      <!-- 表1: 工作流元数据 -->
-      <div class="table-section">
-        <h3>表1: 评估工作流元数据</h3>
-        <el-table 
-          :data="table1Data" 
-          border 
-          class="data-table"
-          v-loading="loadingTable1"
-          element-loading-text="加载元数据..."
-        >
-          <el-table-column prop="category" label="类别" width="120" />
-          <el-table-column prop="workflow" label="工作流" width="180" />
-          <el-table-column prop="inputs" label="输入数据(GB)" align="right" />
-          <el-table-column prop="generated" label="生成数据(GB)" align="right" />
-          <el-table-column prop="factor" label="因子" align="right" />
-          <el-table-column prop="abstractTasks" label="抽象任务" align="right" />
-          <el-table-column prop="physicalTasks" label="物理任务" align="right" />
-        </el-table>
+    <div v-if="loading" class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Loading task analysis data...</p>
+    </div>
+
+    <div v-else-if="error" class="error-message">
+      <i class="fas fa-exclamation-triangle"></i>
+      <p>{{ error }}</p>
+      <button @click="fetchTaskAnalysis" class="retry-btn">Retry</button>
+    </div>
+
+    <div v-else class="section">
+      <div class="analysis-controls">
+        <div class="control-group">
+          <label>Select Analysis:</label>
+          <select v-model="selectedAnalysisId" @change="loadAnalysisData" class="form-control">
+            <option value="">-- Select Analysis --</option>
+            <option v-for="analysis in availableAnalyses" :key="analysis.id" :value="analysis.id">
+              {{ analysis.fileName }} ({{ formatDate(analysis.analyzedAt) }})
+            </option>
+          </select>
+        </div>
       </div>
 
-      <!-- 表2: 工作流执行结果 -->
-      <div class="table-section">
-        <h3>表2: 工作流执行结果 (Ceph & NFS, 8节点, 1Gbit网络)</h3>
-        <el-table 
-          :data="table2Data" 
-          border 
-          class="data-table"
-          v-loading="loadingTable2"
-          element-loading-text="加载执行结果..."
-        >
-          <el-table-column prop="workflow" label="工作流" width="150" fixed />
-          <!-- Ceph列 -->
-          <el-table-column label="Ceph" align="center">
-            <el-table-column prop="ceph.orig" label="Orig(min)" align="right" />
-            <el-table-column prop="ceph.cws" label="CWS(%)" align="right" />
-            <el-table-column prop="ceph.wow" label="WOW(%)" align="right" />
-            <el-table-column prop="ceph.cpuOrig" label="CPU Orig(h)" align="right" />
-            <el-table-column prop="ceph.cpuCws" label="CPU CWS(%)" align="right" />
-            <el-table-column prop="ceph.cpuWow" label="CPU WOW(%)" align="right" />
-            <el-table-column prop="ceph.none" label="无COP(%)" align="right" />
-            <el-table-column prop="ceph.used" label="COP使用(%)" align="right" />
-          </el-table-column>
-          <!-- NFS列 -->
-          <el-table-column label="NFS" align="center">
-            <el-table-column prop="nfs.orig" label="Orig(min)" align="right" />
-            <el-table-column prop="nfs.cws" label="CWS(%)" align="right" />
-            <el-table-column prop="nfs.wow" label="WOW(%)" align="right" />
-            <el-table-column prop="nfs.cpuOrig" label="CPU Orig(h)" align="right" />
-            <el-table-column prop="nfs.cpuCws" label="CPU CWS(%)" align="right" />
-            <el-table-column prop="nfs.cpuWow" label="CPU WOW(%)" align="right" />
-            <el-table-column prop="nfs.none" label="无COP(%)" align="right" />
-            <el-table-column prop="nfs.used" label="COP使用(%)" align="right" />
-          </el-table-column>
-        </el-table>
+      <div v-if="selectedAnalysis && selectedAnalysis.tasks" class="analysis-results">
+        <h2>Task Performance Metrics</h2>
+        
+        <div class="table-container">
+          <table class="metrics-table">
+            <thead>
+              <tr>
+                <th>Task Name</th>
+                <th>Energy Consumption (kWh)</th>
+                <th>Carbon Footprint (kgCO₂)</th>
+                <th>Runtime (s)</th>
+                <th>CPU Usage (%)</th>
+                <th>Memory Usage (MB)</th>
+                <th>Hardware</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="task in selectedAnalysis.tasks" :key="task.id">
+                <td>{{ task.taskName }}</td>
+                <td>{{ task.energyConsumption ? task.energyConsumption.toFixed(3) : 'N/A' }}</td>
+                <td>{{ task.carbonFootprint ? task.carbonFootprint.toFixed(3) : 'N/A' }}</td>
+                <td>{{ task.runtime ? task.runtime.toFixed(3) : 'N/A' }}</td>
+                <td>{{ task.cpuUsage ? task.cpuUsage.toFixed(2) : 'N/A' }}</td>
+                <td>{{ task.memoryUsage ? task.memoryUsage.toFixed(2) : 'N/A' }}</td>
+                <td>{{ task.hardware }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-
-      <!-- 表3: 网络带宽影响 -->
-      <div class="table-section">
-        <h3>表3: 网络带宽对执行时间的影响(1Gbit→2Gbit)</h3>
-        <el-table 
-          :data="table3Data" 
-          border 
-          class="data-table"
-          v-loading="loadingTable3"
-          element-loading-text="加载网络影响数据..."
-        >
-          <el-table-column prop="workflow" label="工作流" width="150" />
-          <el-table-column prop="ceph.orig" label="Ceph-Orig(%)" align="right" />
-          <el-table-column prop="ceph.cws" label="Ceph-CWS(%)" align="right" />
-          <el-table-column prop="ceph.wow" label="Ceph-WOW(%)" align="right" />
-          <el-table-column prop="nfs.orig" label="NFS-Orig(%)" align="right" />
-          <el-table-column prop="nfs.cws" label="NFS-CWS(%)" align="right" />
-          <el-table-column prop="nfs.wow" label="NFS-WOW(%)" align="right" />
-        </el-table>
+      <div v-else>
+        <p>No analysis selected or no task data available. Please select an analysis from the dropdown.</p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ElTable, ElTableColumn } from 'element-plus'
+import axios from 'axios';
+
 export default {
-  components: {
-    ElTable,
-    ElTableColumn
-  },
+  name: 'TaskAnalysis',
   data() {
     return {
-      loadingTable1: true,
-      loadingTable2: true,
-      loadingTable3: true,
-      table1Data: [
-        {
-          category: "ChIP-Seq",
-          workflow: "ChIP-Seq v1.0",
-          inputs: 42.5,
-          generated: 128.3,
-          factor: 3.02,
-          abstractTasks: 28,
-          physicalTasks: 105
-        },
-        {
-          category: "RNA-Seq",
-          workflow: "RNA-Seq v2.1",
-          inputs: 35.8,
-          generated: 98.7,
-          factor: 2.76,
-          abstractTasks: 25,
-          physicalTasks: 92
-        },
-        {
-          category: "WGS",
-          workflow: "WGS v3.2",
-          inputs: 152.4,
-          generated: 324.8,
-          factor: 2.13,
-          abstractTasks: 32,
-          physicalTasks: 118
-        },
-        {
-          category: "ATAC-Seq",
-          workflow: "ATAC-Seq v1.5",
-          inputs: 28.7,
-          generated: 86.2,
-          factor: 3.00,
-          abstractTasks: 24,
-          physicalTasks: 88
-        }
-      ],
-      table2Data: [
-        {
-          workflow: "ChIP-Seq",
-          ceph: {
-            orig: 215,
-            cws: 12.4,
-            wow: 8.7,
-            cpuOrig: 42.1,
-            cpuCws: 15.3,
-            cpuWow: 10.2,
-            none: 18.6,
-            used: 79.6
-          },
-          nfs: {
-            orig: 243,
-            cws: 14.2,
-            wow: 9.8,
-            cpuOrig: 48.3,
-            cpuCws: 17.1,
-            cpuWow: 11.5,
-            none: 22.3,
-            used: 72.4
-          }
-        },
-        {
-          workflow: "RNA-Seq",
-          ceph: {
-            orig: 187,
-            cws: 10.8,
-            wow: 7.2,
-            cpuOrig: 36.5,
-            cpuCws: 13.2,
-            cpuWow: 8.9,
-            none: 15.4,
-            used: 82.1
-          },
-          nfs: {
-            orig: 210,
-            cws: 12.7,
-            wow: 8.3,
-            cpuOrig: 41.2,
-            cpuCws: 15.8,
-            cpuWow: 10.1,
-            none: 19.8,
-            used: 75.6
-          }
-        },
-        {
-          workflow: "WGS",
-          ceph: {
-            orig: 423,
-            cws: 18.5,
-            wow: 12.4,
-            cpuOrig: 82.7,
-            cpuCws: 22.3,
-            cpuWow: 15.8,
-            none: 24.1,
-            used: 71.2
-          },
-          nfs: {
-            orig: 486,
-            cws: 21.7,
-            wow: 14.6,
-            cpuOrig: 95.1,
-            cpuCws: 26.4,
-            cpuWow: 18.3,
-            none: 28.9,
-            used: 65.3
-          }
-        },
-        {
-          workflow: "ATAC-Seq",
-          ceph: {
-            orig: 182,
-            cws: 9.7,
-            wow: 6.8,
-            cpuOrig: 35.8,
-            cpuCws: 12.1,
-            cpuWow: 8.4,
-            none: 14.2,
-            used: 83.5
-          },
-          nfs: {
-            orig: 205,
-            cws: 11.9,
-            wow: 8.1,
-            cpuOrig: 40.3,
-            cpuCws: 14.7,
-            cpuWow: 9.8,
-            none: 18.5,
-            used: 76.9
-          }
-        }
-      ],
-      table3Data: [
-        {
-          workflow: "ChIP-Seq",
-          ceph: { orig: -18.3, cws: -15.2, wow: -12.7 },
-          nfs: { orig: -15.2, cws: -12.8, wow: -10.4 }
-        },
-        {
-          workflow: "RNA-Seq",
-          ceph: { orig: -16.5, cws: -14.1, wow: -11.3 },
-          nfs: { orig: -14.0, cws: -11.9, wow: -9.6 }
-        },
-        {
-          workflow: "WGS",
-          ceph: { orig: -22.4, cws: -19.7, wow: -16.8 },
-          nfs: { orig: -19.2, cws: -16.5, wow: -14.1 }
-        },
-        {
-          workflow: "ATAC-Seq",
-          ceph: { orig: -17.1, cws: -14.8, wow: -12.1 },
-          nfs: { orig: -14.8, cws: -12.3, wow: -10.2 }
-        }
-      ]
+      availableAnalyses: [],
+      selectedAnalysisId: null,
+      selectedAnalysis: null,
+      loading: true,
+      error: null
     };
   },
   mounted() {
-    // 模拟数据加载延迟
-    setTimeout(() => {
-      this.loadingTable1 = false;
-    }, 800);
-    setTimeout(() => {
-      this.loadingTable2 = false;
-    }, 1200);
-    setTimeout(() => {
-      this.loadingTable3 = false;
-    }, 1600);
+    this.fetchAvailableAnalyses();
+  },
+  methods: {
+    async fetchAvailableAnalyses() {
+      this.loading = true;
+      try {
+        const response = await axios.get('/api/analyses');
+        this.availableAnalyses = response.data;
+      } catch (error) {
+        console.error("Failed to fetch available analyses:", error);
+        this.error = "Failed to load available analyses.";
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    async loadAnalysisData() {
+      if (!this.selectedAnalysisId) {
+        this.selectedAnalysis = null;
+        return;
+      }
+      
+      this.loading = true;
+      try {
+        const response = await axios.get(`/api/analyses/${this.selectedAnalysisId}`);
+        this.selectedAnalysis = response.data;
+      } catch (error) {
+        console.error("Failed to fetch analysis data:", error);
+        this.error = "Failed to load analysis details.";
+        this.selectedAnalysis = null;
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    formatDate(dateString) {
+      if (!dateString) return 'N/A';
+      const date = new Date(dateString);
+      return date.toLocaleDateString();
+    }
   }
-};
+}
 </script>
 
 <style scoped>
+/* 全局布局和排版 */
 .system-monitoring {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  padding: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  color: #333;
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  color: #2c3e50;
+  padding: 20px;
+  background: #f4f7f6;
+  min-height: 100vh;
 }
 
 .header {
-  text-align: center;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 20px;
 }
 
 .header h1 {
-  font-size: 2.2rem;
-  margin-bottom: 10px;
-  color: #4a4a4a;
-  font-weight: 600;
+  font-size: 2.5rem;
+  color: #38455b;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 1rem;
 }
 
 .section {
-  background: #f8f9fa;
+  padding: 20px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 20px;
+}
+
+/* 控制部分 */
+.analysis-controls {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.control-group label {
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.form-control {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  background-color: #f9fafb;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #2c7873;
+  box-shadow: 0 0 0 3px rgba(44, 120, 115, 0.2);
+}
+
+/* 表格样式 */
+.table-container {
+  overflow-x: auto;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.metrics-table th, .metrics-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.metrics-table th {
+  background-color: #eef1f4;
+  font-weight: 600;
+  color: #4a5568;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.metrics-table tbody tr:hover {
+  background-color: #f7fafc;
+}
+
+.metrics-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 状态和加载样式 */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 151, 167, 0.3);
+  border-radius: 50%;
+  border-top: 4px solid #0097a7;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  background: #ffebee;
   border-radius: 8px;
   padding: 20px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-  border: 1px solid #eee;
+  text-align: center;
+  color: #b71c1c;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-.section h2 {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
-  color: #555;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #e0e0e0;
-  font-weight: 500;
+.error-message i {
+  font-size: 2rem;
+  color: #d32f2f;
 }
 
-.table-section {
-  margin-bottom: 30px;
-  overflow-x: auto;
-  position: relative;
+.retry-btn {
+  padding: 8px 16px;
+  border-radius: 5px;
+  background-color: #d32f2f;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.table-section h3 {
-  font-size: 1.3rem;
-  margin: 15px 0;
-  color: #555;
-  font-weight: 500;
-}
-
-.data-table {
-  width: 100%;
-  min-width: 1200px;
-  margin-top: 10px;
-}
-
-/* 滚动条样式 */
-::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-track {
-  background-color: #f1f1f1;
-}
-
-@media (max-width: 768px) {
-  .system-monitoring {
-    padding: 20px;
-  }
-  
-  .header h1 {
-    font-size: 1.8rem;
-  }
-  
-  .section h2 {
-    font-size: 1.3rem;
-  }
-  
-  .table-section h3 {
-    font-size: 1.1rem;
-  }
-  
-  .data-table {
-    min-width: 900px;
-  }
-}
-
-@media (max-width: 480px) {
-  .system-monitoring {
-    padding: 15px;
-  }
-  
-  .header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .section {
-    padding: 15px;
-  }
-  
-  .data-table {
-    min-width: 700px;
-  }
+.retry-btn:hover {
+  background-color: #b71c1c;
 }
 </style>

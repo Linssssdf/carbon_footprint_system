@@ -7,13 +7,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskResult {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    private String taskName;
+    private String process;
     private Double energyConsumption;
     private Double carbonFootprint;
     private Double runtime;
@@ -23,13 +27,14 @@ public class TaskResult {
     
     @ManyToOne
     @JoinColumn(name = "result_id")
+    @JsonBackReference
     private AnalysisResult analysisResult;
 
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
-    public String getTaskName() { return taskName; }
-    public void setTaskName(String taskName) { this.taskName = taskName; }
+    public String getProcess() { return process; }
+    public void setProcess(String process) { this.process = process; }
     public Double getEnergyConsumption() { return energyConsumption; }
     public void setEnergyConsumption(Double energyConsumption) { this.energyConsumption = energyConsumption; }
     public Double getCarbonFootprint() { return carbonFootprint; }

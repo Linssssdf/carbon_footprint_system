@@ -13,12 +13,15 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.carbonfootprint.config.FileStorageConfig;
+import com.carbonfootprint.config.PythonConfig;
 import com.carbonfootprint.exception.FileStorageException;
 import com.carbonfootprint.exception.ResourceNotFoundException;
 import com.carbonfootprint.exception.ScriptExecutionException;
@@ -34,9 +37,11 @@ public class ScriptService {
     
     @Autowired
     private PythonRunnerService pythonRunnerService;
-    
     @Autowired
     private FileStorageConfig fileStorageConfig;
+
+    @Autowired
+    private PythonConfig pythonConfig;
 
     private static final Logger logger = LoggerFactory.getLogger(ScriptService.class);
     
@@ -84,29 +89,10 @@ public class ScriptService {
             throw new FileStorageException("无法存储文件 " + fileName, ex);
         }
     }
-    
-    public AnalysisResult executeScript(Long scriptId) {
-        Script script = getScriptById(scriptId);
-        
-        try {
-            // 执行Python脚本
-            AnalysisResult result = pythonRunnerService.runScript(script);
-            
-            // 更新脚本状态
-            script.setStatus("EXECUTED");
-            script.setLastExecutionTime(LocalDateTime.now());
-            scriptRepository.save(script);
-            
-            return result;
-        } catch (Exception ex) {
-            script.setStatus("FAILED");
-            scriptRepository.save(script);
-            throw new ScriptExecutionException("Failed to execute script: " + ex.getMessage());
-        }
-    }
 
     public AnalysisResult analyzeTraceFile(Long scriptId) {
         Script script = getScriptById(scriptId);
+        logger.info("Starting analysis for script ID: {}", scriptId);
         
         // 验证是否为 trace 文件
         if (!script.getFileName().endsWith(".csv")) {
@@ -116,38 +102,23 @@ public class ScriptService {
         try {
             // 执行分析
             AnalysisResult result = pythonRunnerService.analyzeTraceFile(script);
+            logger.info("Analysis completed successfully, result ID: {}", result.getId());
             
             // 更新脚本状态
             script.setStatus("ANALYZED");
             scriptRepository.save(script);
+            logger.info("Script status updated to ANALYZED");
             
             return result;
         } catch (Exception ex) {
+            logger.error("Analysis failed for script ID: {}", scriptId, ex);
             script.setStatus("ANALYSIS_FAILED");
             scriptRepository.save(script);
             throw ex;
         }
     }
-    
     public Script getScriptById(Long id) {
         return scriptRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Script not found with id: " + id));
-    }
-
-    @GetMapping("/system-info")
-    public Map<String, String> getSystemInfo() {
-        Map<String, String> info = new HashMap<>();
-        info.put("user.dir", System.getProperty("user.dir"));
-        info.put("java.io.tmpdir", System.getProperty("java.io.tmpdir"));
-        info.put("file.encoding", System.getProperty("file.encoding"));
-        info.put("os.name", System.getProperty("os.name"));
-        
-        // 检查上传目录
-        String uploadDir = fileStorageConfig.getUploadDir();
-        info.put("uploadDir", uploadDir);
-        info.put("uploadDir.exists", String.valueOf(new File(uploadDir).exists()));
-        info.put("uploadDir.canWrite", String.valueOf(new File(uploadDir).canWrite()));
-        
-        return info;
     }
 }

@@ -1,5 +1,6 @@
 package com.carbonfootprint.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -36,5 +37,17 @@ public class FileStorageConfig {
 
     public void setUploadDir(String uploadDir) {
         this.uploadDir = uploadDir;
+    }
+    @Value("${file.export-dir}")
+    private String exportDir;
+    
+    @Bean
+    public String uploadDir() {
+        return uploadDir;
+    }
+    
+    @Bean
+    public String exportDir() {
+        return exportDir;
     }
 }

@@ -9,7 +9,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Script {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,6 +29,7 @@ public class Script {
     public Script() {}
     
     @OneToOne(mappedBy = "script", cascade = CascadeType.ALL)
+    @JsonIgnore
     private AnalysisResult result;
 
     // Getters and Setters

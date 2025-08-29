@@ -29,14 +29,12 @@
       
       <div v-show="showVisualizationMenu" class="sub-menu">
         <router-link 
-          v-for="(subItem, subIndex) in visualizationItems" 
-          :key="subIndex" 
-          :to="subItem.path"
+          to="/visualization2"
           class="sub-item"
-          :class="{ active: $route.path === subItem.path }"
+          :class="{ active: $route.path === '/visualization2' }"
         >
-          <i :class="subItem.icon"></i>
-          <span class="nav-text">{{ subItem.text }}</span>
+          <i class="fas fa-chart-line"></i>
+          <span class="nav-text">Visualization</span>
         </router-link>
       </div>
     </div>
@@ -57,20 +55,19 @@ export default {
       navItems: [
         { icon: 'fas fa-home', text: 'Dashboard', path: '/' },
         { icon: 'fas fa-tasks', text: 'Task Analysis', path: '/task-analysis' },
-        { icon: 'fas fa-project-diagram', text: 'Workflow', path: '/workflow' },
         { icon: 'fas fa-database', text: 'Data Source', path: '/data-sources' },
         { icon: 'fas fa-cog', text: 'System Settings', path: '/settings' }
       ],
-      visualizationItems: [
-        { icon: 'fas fa-chart-line', text: 'Task 1', path: '/visualization1' },
-        { icon: 'fas fa-chart-line', text: 'Task 2', path: '/visualization2' },
-        { icon: 'fas fa-chart-line', text: 'Task 3', path: '/visualization3' }
-      ]
+      // visualizationItems: [
+      //   { icon: 'fas fa-chart-line', text: 'Task 1', path: '/visualization1' },
+      //   { icon: 'fas fa-chart-line', text: 'Task 2', path: '/visualization2' },
+      //   { icon: 'fas fa-chart-line', text: 'Task 3', path: '/visualization3' }
+      // ]
     }
   },
   computed: {
     isVisualizationActive() {
-      return ['/visualization1', '/visualization2', '/visualization3'].includes(this.$route.path);
+      return this.$route.path === '/visualization2';
     }
   },
   methods: {
@@ -81,7 +78,7 @@ export default {
   watch: {
     $route(to) {
       // 当路由变化到可视化页面时，确保菜单展开
-      if (['/visualization1', '/visualization2', '/visualization3'].includes(to.path)) {
+      if (to.path === '/visualization2') {
         this.showVisualizationMenu = true;
       }
     }
