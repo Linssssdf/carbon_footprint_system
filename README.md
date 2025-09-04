@@ -1,28 +1,34 @@
-Let's build a web system to track the carbon footprint of scientific workflows
-Requirements
+## Let's build a web system to track the carbon footprint of scientific workflows
+## Requirements
 -Backend Requirements
 -Java 17+
 -Maven 3.6+
 
--Frontend Requirements
+## Frontend Requirements
 -Node.js 16+
 -npm 8+
 
-Installation & Running:
+## Installation & Running:
 -Backend Startup
--Navigate to the backend directory
+Navigate to the backend directory
 -Package the application using Maven
+```sh
 cd frontend
 mvn clean package
 mvn spring-boot:run
+```
 or
+```sh
 java -jar target/carbon_footprint-1.0.0.jar
+```
 -Backend service runs at: http://localhost:8080
 
 -Frontend Startup
 -Navigate to the frontend directory
+```sh
 cd frontend
 Install dependencies
 npm install
 npm run dev
+```
 -Frontend application runs at: http://localhost:5173

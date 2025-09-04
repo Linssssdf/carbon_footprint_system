@@ -20,14 +20,14 @@
         accept=".csv"
       >
       
-      <!-- 如果没有文件，显示提示信息 -->
+      <!-- If there is no file, a prompt message is displayed -->
       <div v-if="dataSources.length === 0" class="empty-state">
         <i class="fas fa-cloud-upload-alt"></i>
         <h3>No data sources connected</h3>
         <p>Upload a CSV trace file to get started with carbon footprint analysis.</p>
       </div>
       
-      <!-- 有文件时显示文件列表 -->
+      <!-- Displays a list of files when they are available -->
       <div v-else class="data-sources-grid">
         <div 
           v-for="source in dataSources" 
@@ -57,7 +57,7 @@
       </div>
     </div>
 
-    <!-- 加载状态 -->
+    <!-- Loading status -->
     <div v-if="loading" class="loading-overlay">
       <div class="spinner"></div>
       <p>Processing...</p>
@@ -85,7 +85,7 @@ export default {
         this.dataSources = response.data;
       } catch (error) {
         console.error("Failed to fetch data sources:", error);
-        // 如果后端没有实现获取所有数据源的API，使用模拟数据
+        // If the backend does not implement an API to get all data sources, use mock data
         this.dataSources = [];
       }
     },
@@ -98,7 +98,7 @@ export default {
       const file = event.target.files[0];
       if (!file) return;
       
-      // 验证文件类型
+      // Verify the file type
       if (file.type !== 'text/csv' && !file.name.toLowerCase().endsWith('.csv')) {
         alert('Please upload a CSV file');
         return;
@@ -139,7 +139,7 @@ export default {
         const response = await axios.post(`/api/analysis/${sourceId}/analyze`);
         const result = response.data;
         
-        // 跳转到可视化页面，传递结果ID
+        // Jump to the visualization page and pass the result ID
         this.$router.push({ 
           path: '/visualization', 
           query: { resultId: result.id }
@@ -192,7 +192,84 @@ export default {
 </script>
 
 <style scoped>
-/* 空状态样式 */
+/*
+  The `.data-sources-grid` container is set to `display: grid`
+  to create a responsive, multi-column layout.
+*/
+.data-sources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+/*
+  The `.source-card` now has a clear, card-like appearance
+  with padding, border-radius, and a subtle box-shadow.
+*/
+.source-card {
+  display: flex;
+  align-items: flex-start;
+  padding: 24px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.source-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.source-icon {
+  font-size: 2.5rem;
+  color: #007bff;
+  margin-right: 20px;
+  flex-shrink: 0; /* Prevents the icon from shrinking */
+}
+
+.source-info {
+  flex-grow: 1;
+}
+
+.source-info h3 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.source-info p {
+  margin: 0 0 16px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.source-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.source-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: auto; /* Pushes buttons to the bottom if content height varies */
+}
+
+.btn {
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+/* Empty state and other existing styles */
 .empty-state {
   text-align: center;
   padding: 40px;
@@ -217,7 +294,6 @@ export default {
   color: #777;
 }
 
-/* 状态标签样式 */
 .status-uploaded {
   color: #ff9800;
   font-weight: 500;
@@ -233,7 +309,6 @@ export default {
   font-weight: 500;
 }
 
-/* 加载覆盖层 */
 .loading-overlay {
   position: fixed;
   top: 0;

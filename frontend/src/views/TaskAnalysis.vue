@@ -36,24 +36,28 @@
           <table class="metrics-table">
             <thead>
               <tr>
-                <th>Task Name</th>
+                <th>Process Name</th>
+                <th>Tasks Count</th>
                 <th>Energy Consumption (kWh)</th>
                 <th>Carbon Footprint (kgCO₂)</th>
-                <th>Runtime (s)</th>
+                <th>Runtime (min)</th>
                 <th>CPU Usage (%)</th>
-                <th>Memory Usage (MB)</th>
+                <th>Memory Allocated (GB)</th>
+                <th>I/O Volume (GB)</th>
                 <th>Hardware</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="task in selectedAnalysis.tasks" :key="task.id">
-                <td>{{ task.taskName }}</td>
-                <td>{{ task.energyConsumption ? task.energyConsumption.toFixed(3) : 'N/A' }}</td>
-                <td>{{ task.carbonFootprint ? task.carbonFootprint.toFixed(3) : 'N/A' }}</td>
+                <td>{{ task.process }}</td>
+                <td>{{ task.tasks || 'N/A' }}</td>
+                <td>{{ task.energy_consumption ? (task.energy_consumption / 1000).toFixed(3) : 'N/A' }}</td>
+                <td>{{ task.carbon_footprint ? (task.carbon_footprint / 1000).toFixed(3) : 'N/A' }}</td>
                 <td>{{ task.runtime ? task.runtime.toFixed(3) : 'N/A' }}</td>
-                <td>{{ task.cpuUsage ? task.cpuUsage.toFixed(2) : 'N/A' }}</td>
-                <td>{{ task.memoryUsage ? task.memoryUsage.toFixed(2) : 'N/A' }}</td>
-                <td>{{ task.hardware }}</td>
+                <td>{{ task.cpu_usage ? task.cpu_usage.toFixed(2) : 'N/A' }}</td>
+                <td>{{ task.memory_allocated ? task.memory_allocated.toFixed(2) : 'N/A' }}</td>
+                <td>{{ task.io_volume ? task.io_volume.toFixed(2) : 'N/A' }}</td>
+                <td>{{ task.hardware || 'N/A' }}</td>
               </tr>
             </tbody>
           </table>
@@ -107,6 +111,12 @@ export default {
       try {
         const response = await axios.get(`/api/analyses/${this.selectedAnalysisId}`);
         this.selectedAnalysis = response.data;
+        
+        console.log("Analysis data loaded:", this.selectedAnalysis);
+        if (this.selectedAnalysis.tasks) {
+          console.log("Tasks data:", this.selectedAnalysis.tasks);
+          console.log("First task:", this.selectedAnalysis.tasks[0]);
+        }
       } catch (error) {
         console.error("Failed to fetch analysis data:", error);
         this.error = "Failed to load analysis details.";
@@ -126,7 +136,7 @@ export default {
 </script>
 
 <style scoped>
-/* 全局布局和排版 */
+/* 保留原有样式不变 */
 .system-monitoring {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   color: #2c3e50;
@@ -158,7 +168,6 @@ export default {
   margin-bottom: 20px;
 }
 
-/* 控制部分 */
 .analysis-controls {
   margin-bottom: 30px;
   padding: 20px;
@@ -196,7 +205,6 @@ export default {
   box-shadow: 0 0 0 3px rgba(44, 120, 115, 0.2);
 }
 
-/* 表格样式 */
 .table-container {
   overflow-x: auto;
 }
@@ -229,7 +237,6 @@ export default {
   border-bottom: none;
 }
 
-/* 状态和加载样式 */
 .loading-overlay {
   position: absolute;
   top: 0;

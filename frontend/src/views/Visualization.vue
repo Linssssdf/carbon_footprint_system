@@ -69,7 +69,7 @@
     </div>
 
     <!-- 进程I/O分析图表 -->
-    <div class="section" v-if="formattedProcessData && formattedProcessData.length > 0 && hasIOData">
+    <div class="section" v-if="formattedProcessData && formattedProcessData.length > 0">
       <h2>Process I/O Analysis (GB)</h2>
       <div class="chart-container">
         <canvas id="ioChart" ref="ioChart"></canvas>
@@ -489,11 +489,8 @@ export default {
       
       // 获取IO数据，使用默认值0如果字段不存在
       const ioData = this.formattedProcessData.map(process => {
-        // 尝试多种可能的字段名称
-        const read = process.read_gb || task.read_gb || 0;
-        const write = process.write_gb || task.write_gb || 0;
-        
-        console.log(`Process: ${process.process}, Read: ${read}, Write: ${write}`);
+        const read = process.read_gb || 0;
+        const write = process.write_gb || 0;
         
         return {
           process: process.process || 'Unknown',
@@ -502,8 +499,6 @@ export default {
           total: read + write
         };
       });
-      
-      console.log("All IO data:", ioData);
       
       // 按总IO量排序并取前10个
       const topProcesses = [...ioData]

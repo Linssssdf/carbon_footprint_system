@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.carbonfootprint.exception.ResourceNotFoundException;
 import com.carbonfootprint.service.VisualizationService;
 import com.carbonfootprint.service.VisualizationService.VisualizationData;
 
@@ -39,7 +38,7 @@ public class VisualizationController {
                 logger.info("First task: {}", data.getTasks().get(0));
             }
             
-            // 直接返回VisualizationData对象，它包含所有必要的数据
+            // Returns the VisualizationData object directly, which contains all the necessary data
             return ResponseEntity.ok(data);
         } catch (Exception e) {
             logger.error("Error retrieving visualization data", e);

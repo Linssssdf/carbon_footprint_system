@@ -37,21 +37,21 @@ public class AnalysisService {
                 .orElseThrow(() -> new ResourceNotFoundException("Analysis result not found with id: " + id));
     }
     
-    // 保存分析结果
+    // Save the analysis results
     public AnalysisResult saveAnalysisResult(Script script, JsonNode resultData) {
         ObjectMapper mapper = new ObjectMapper();
         AnalysisResult result = new AnalysisResult();
         
         JsonNode summary = resultData.get("summary");
         if (summary != null) {
-            // 修改键名以匹配Python脚本的输出
+            // Modify the key name to match the output of the Python script
             result.setTotalEnergy(summary.path("totalEnergy").asDouble(0.0));
             result.setTotalCarbonFootprint(summary.path("totalCarbonFootprint").asDouble(0.0));
             result.setTotalRuntime(summary.path("totalRuntime").asDouble(0.0));
             result.setAvgCpuUtilization(summary.path("avgCpuUtilization").asDouble(0.0));
         }
 
-        // 保存完整的原始数据
+        // Save the complete raw data
         try {
             result.setRawData(mapper.writeValueAsString(resultData));
         } catch (JsonProcessingException e) {
@@ -140,7 +140,7 @@ public class AnalysisService {
                 .collect(Collectors.toList());
     }
     
-    // 内部类用于数据传输
+    // The inner class is used for data transfer
     public static class DashboardSummary {
         private final double totalEnergy;
         private final double totalCarbonFootprint;
@@ -200,7 +200,7 @@ public class AnalysisService {
         public double getEnergy() { return energy; }
         public Long getAnalysisId() { return analysisId; }
     }
-    // 导出分析结果到文件
+    // Export the analysis results to a file
     public void exportAnalysisResult(Long resultId, String filePath) {
         AnalysisResult result = getAnalysisResultById(resultId);
         try {
@@ -215,7 +215,7 @@ public class AnalysisService {
         }
     }
 
-    // 从文件导入分析结果
+    // Import analysis results from a file
     public AnalysisResult importAnalysisResult(String filePath) {
         try {
             String jsonData = new String(Files.readAllBytes(Paths.get(filePath)));

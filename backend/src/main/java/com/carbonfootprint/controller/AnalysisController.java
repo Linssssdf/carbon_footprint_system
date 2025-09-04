@@ -14,9 +14,7 @@ import com.carbonfootprint.service.ScriptService;
 import com.carbonfootprint.service.AnalysisService.AnalysisSummary;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api")

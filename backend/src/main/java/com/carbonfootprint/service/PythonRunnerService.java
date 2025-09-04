@@ -41,7 +41,7 @@ public class PythonRunnerService {
         try {
             logger.info("Python script path from config: {}", pythonConfig.getAnalysisScript());
             
-            // 获取类路径资源
+            // Get classpath resources
             Resource resource = new ClassPathResource(pythonConfig.getAnalysisScript());
             
             if (!resource.exists()) {
@@ -49,15 +49,15 @@ public class PythonRunnerService {
                         pythonConfig.getAnalysisScript());
             }
             
-            // 检查资源是否在JAR文件中
+            // Check if the resource is in the JAR file
             String resourceUri = resource.getURI().toString();
             logger.info("Resource URI: {}", resourceUri);
             
             if (resourceUri.startsWith("jar:")) {
-                // 资源在JAR文件中，需要提取到临时文件
+                // The resource is in the JAR file and needs to be extracted to a temporary file
                 logger.info("Script is inside JAR file, extracting to temporary file");
                 
-                // 创建临时文件
+                // Create temporary files
                 analysisScript = File.createTempFile("analysis", ".py");
                 try (InputStream in = resource.getInputStream()) {
                     Files.copy(in, analysisScript.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -65,7 +65,7 @@ public class PythonRunnerService {
                 isTempFile = true;
                 logger.info("Extracted script to temporary file: {}", analysisScript.getAbsolutePath());
             } else {
-                // 资源在文件系统中
+                // The resource is in the file system
                 analysisScript = resource.getFile();
                 logger.info("Using script from filesystem: {}", analysisScript.getAbsolutePath());
             }
@@ -81,12 +81,12 @@ public class PythonRunnerService {
             
             logger.info("Executing command: {}", command);
             
-            // 执行命令
+            // Execute the command
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             processBuilder.redirectErrorStream(true);
             Process process = processBuilder.start();
             
-            // 读取输出
+            // Read the output
             StringBuilder output = new StringBuilder();
             StringBuilder errorOutput = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
@@ -100,7 +100,7 @@ public class PythonRunnerService {
                     logger.debug("Python output: {}", line);
                 }
                 
-                // 读取错误输出
+                // Read the wrong output
                 while ((line = errorReader.readLine()) != null) {
                     errorOutput.append(line).append("\n");
                     logger.error("Python error: {}", line);
@@ -115,16 +115,16 @@ public class PythonRunnerService {
                         ". Error output: " + errorOutput.toString());
             }
             
-            // 检查输出是否为空
+            // Check if the output is empty
             if (output.length() == 0) {
                 throw new ScriptExecutionException("Python script produced no output");
             }
             
-            // 在PythonRunnerService.java的analyzeTraceFile方法中
+            // In the analyzeTraceFile method of PythonRunnerService.java
             String outputStr = output.toString();
             logger.info("Raw Python output: {}", outputStr);
 
-            // 尝试提取JSON部分（如果输出中包含非JSON内容）
+            // Try extracting the JSON part (if the output contains non-JSON content)
             String jsonStr = extractJsonFromOutput(outputStr);
             if (jsonStr == null) {
                 // 如果没有找到JSON，尝试直接使用整个输出
