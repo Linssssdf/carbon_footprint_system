@@ -12,8 +12,8 @@
     </parent>
 
     <groupId>com.example</groupId>
-    <artifactId>demo</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <artifactId>carbon_footprint</artifactId>
+    <version>1.0.0</version>
 
     <!-- 依赖配置 -->
     <dependencies>
